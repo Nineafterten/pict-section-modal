@@ -182,6 +182,40 @@ suite('Pict-Modal-Shell', () =>
 			Expect(tmpPanel.El.querySelector('.pict-modal-shell-panel-resize-handle')).to.exist;
 		});
 
+		test('Hidden mode skips the collapse tab and applies the hidden class', () =>
+		{
+			let { Modal, Host } = makeShell();
+			let tmpShell = Modal.shell(Host);
+			let tmpPanel = tmpShell.addPanel(
+			{
+				Hash: 'settings', Side: 'right', Mode: 'resizable',
+				Size: 360, Hidden: true, Collapsed: true
+			});
+			Expect(tmpPanel.Hidden).to.equal(true);
+			Expect(tmpPanel.El.classList.contains('pict-modal-shell-panel-hidden')).to.equal(true);
+			// No collapse tab — the only path back is a programmatic expand()
+			Expect(tmpPanel.El.querySelector('.pict-modal-shell-panel-collapse-tab')).to.equal(null);
+			// CollapsedSize defaults to 0 for hidden panels (no edge sliver).
+			Expect(tmpPanel.CollapsedSize).to.equal(0);
+		});
+
+		test('Hidden + Collapsed panel exposes itself via programmatic expand()', () =>
+		{
+			let { Modal, Host } = makeShell();
+			let tmpShell = Modal.shell(Host);
+			let tmpPanel = tmpShell.addPanel(
+			{
+				Hash: 'settings', Side: 'right', Mode: 'resizable',
+				Size: 360, Hidden: true, Collapsed: true
+			});
+			Expect(tmpPanel.Collapsed).to.equal(true);
+			tmpPanel.expand();
+			Expect(tmpPanel.Collapsed).to.equal(false);
+			Expect(tmpPanel.El.style.width).to.equal('360px');
+			// Resize handle remains usable in the expanded state.
+			Expect(tmpPanel.El.querySelector('.pict-modal-shell-panel-resize-handle')).to.exist;
+		});
+
 		test('content destination is reachable via #id selector', () =>
 		{
 			let { Modal, Host } = makeShell();

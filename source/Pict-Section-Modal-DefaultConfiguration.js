@@ -1105,6 +1105,18 @@ module.exports = (
 	display: inline;
 }
 
+/* Hidden panels — when Hidden:true is passed to addPanel, the collapsed
+   state has zero footprint: no collapse tab (the tab is never built),
+   the panel root is display:none, and the resize handle vanishes. The
+   only path to the open state is a programmatic expand()/toggle() from
+   somewhere else in the app (e.g. a topbar gear button). When expanded,
+   the panel renders normally — so resize/drag handles continue to work
+   while the panel is open. */
+.pict-modal-shell-panel-hidden.pict-modal-shell-panel-collapsed
+{
+	display: none !important;
+}
+
 /* Overlay panels — float over the middle row instead of taking layout
    space. The overlay layer is positioned absolutely inside the middle
    row; individual overlay panels stack with positive z-index. */

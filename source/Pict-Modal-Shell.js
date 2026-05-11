@@ -73,6 +73,14 @@
  *                         to remember to render the view into it" boilerplate.
  *   Persist:              default true; pass false to skip save/load for this
  *                         panel even when the shell has persistence enabled.
+ *   Hidden:               default false. When true, the collapsed state has
+ *                         NO visible chrome — no collapse tab, no edge
+ *                         affordance, the panel root is display: none. The
+ *                         only way to reveal it is a programmatic
+ *                         expand()/toggle() from elsewhere (e.g. a topbar
+ *                         gear). Mode still controls the EXPANDED chrome —
+ *                         pass Mode: 'resizable' to keep the drag handle
+ *                         while open, then vanish on collapse.
  *   OnExpand, OnCollapse: callbacks that fire ONLY on transitions
  *                         (collapsed→expanded or expanded→collapsed).
  *                         Cleaner than OnToggle which fires for both
@@ -418,7 +426,19 @@ class ShellPanel
 		this.Icon  = pConfig.Icon  || '';
 		this.MinSize = (typeof pConfig.MinSize === 'number') ? pConfig.MinSize : 40;
 		this.MaxSize = (typeof pConfig.MaxSize === 'number') ? pConfig.MaxSize : 1200;
-		this.CollapsedSize = (typeof pConfig.CollapsedSize === 'number') ? pConfig.CollapsedSize : DEFAULT_COLLAPSED_SIZE;
+		// `Hidden: true` is a panel that has NO visible chrome in its collapsed
+		// state — no collapse tab sliver, no resize handle, no edge marker, and
+		// (via CSS) display: none on the panel root. The only way to reveal it
+		// is a programmatic expand()/toggle() called from elsewhere in the app
+		// (e.g. a gear button in the topbar). Useful when the host wants a
+		// fully-shaped panel but doesn't want an always-visible affordance for
+		// discovering it. The Mode is still honoured for the EXPANDED state —
+		// pass Mode: 'resizable' to keep the drag handle while the panel is
+		// open, while still vanishing entirely when collapsed.
+		this.Hidden = !!pConfig.Hidden;
+		this.CollapsedSize = (typeof pConfig.CollapsedSize === 'number')
+			? pConfig.CollapsedSize
+			: (this.Hidden ? 0 : DEFAULT_COLLAPSED_SIZE);
 		this.PersistEnabled = pShell._persistenceEnabled && (pConfig.Persist !== false);
 
 		let tmpDefaultSize = (this.Side === 'left' || this.Side === 'right') ? DEFAULT_SIZE_SIDE : DEFAULT_SIZE_TOPBOTTOM;
@@ -690,7 +710,8 @@ class ShellPanel
 		let tmpRoot = document.createElement('div');
 		tmpRoot.className = 'pict-modal-shell-panel pict-modal-shell-panel-' + this.Side
 			+ ' pict-modal-shell-panel-mode-' + this.Mode
-			+ (this.Position === 'overlay' ? ' pict-modal-shell-panel-overlay' : '');
+			+ (this.Position === 'overlay' ? ' pict-modal-shell-panel-overlay' : '')
+			+ (this.Hidden ? ' pict-modal-shell-panel-hidden' : '');
 		tmpRoot.setAttribute('data-shell-panel-hash', this.Hash);
 		tmpRoot.setAttribute('data-shell-panel-side', this.Side);
 		tmpRoot.setAttribute('data-shell-panel-mode', this.Mode);
@@ -709,7 +730,10 @@ class ShellPanel
 
 		// Collapse tab — shown when collapsible / resizable. Lives at the
 		// inner edge so it's always reachable when the panel is collapsed.
-		if (this.Mode === 'collapsible' || this.Mode === 'resizable')
+		// Hidden panels skip the tab entirely — the only path back from
+		// collapsed → expanded is a programmatic expand() / toggle() call
+		// from the host (e.g. a topbar gear button).
+		if ((this.Mode === 'collapsible' || this.Mode === 'resizable') && !this.Hidden)
 		{
 			this._collapseTab = document.createElement('button');
 			this._collapseTab.type = 'button';

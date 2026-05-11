@@ -836,7 +836,10 @@ suite
 						Expect(tmpTarget.classList.contains('pict-panel-right')).to.be.true;
 						Expect(tmpTarget.style.width).to.equal('350px');
 
-						let tmpEdge = tmpTarget.querySelector('.pict-panel-edge');
+						// The edge element is inserted as a SIBLING of the panel
+						// target (not a child) so the panel's own overflow doesn't
+						// clip it — see Pict-Modal-Panel.js for the rationale.
+						let tmpEdge = tmpTarget.parentNode.querySelector('.pict-panel-edge');
 						Expect(tmpEdge).to.not.be.null;
 						Expect(tmpEdge.querySelector('.pict-panel-resize')).to.not.be.null;
 						Expect(tmpEdge.querySelector('.pict-panel-tab')).to.not.be.null;
@@ -969,7 +972,8 @@ suite
 
 						Expect(tmpTarget.classList.contains('pict-panel-left')).to.be.true;
 
-						let tmpEdge = tmpTarget.querySelector('.pict-panel-edge-left');
+						// Edge is a sibling, not a child (avoids overflow clipping).
+						let tmpEdge = tmpTarget.parentNode.querySelector('.pict-panel-edge-left');
 						Expect(tmpEdge).to.not.be.null;
 
 						tmpHandle.destroy();
@@ -992,12 +996,14 @@ suite
 
 						let tmpHandle = tmpModal.panel('#test-panel-8', { width: 300 });
 
-						Expect(tmpTarget.querySelector('.pict-panel-edge')).to.not.be.null;
+						// Edge is a sibling of the panel target, not a child.
+						let tmpParent = tmpTarget.parentNode;
+						Expect(tmpParent.querySelector('.pict-panel-edge')).to.not.be.null;
 
 						tmpHandle.destroy();
 
 						Expect(tmpTarget.classList.contains('pict-panel')).to.be.false;
-						Expect(tmpTarget.querySelector('.pict-panel-edge')).to.be.null;
+						Expect(tmpParent.querySelector('.pict-panel-edge')).to.be.null;
 
 						tmpTarget.remove();
 						fDone();
