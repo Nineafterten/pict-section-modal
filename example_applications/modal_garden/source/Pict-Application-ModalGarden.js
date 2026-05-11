@@ -1,9 +1,62 @@
 const libPictApplication = require('pict-application');
+const libPictView        = require('pict-view');
 
 const libPictSectionModal = require('pict-section-modal');
 const libPictSectionCode = require('pict-section-code');
 
 const libPictViewModalGardenLayout = require('./views/PictView-ModalGarden-Layout.js');
+
+// ── ShellDemo-Counter view ──────────────────────────────────────────
+// A tiny inline Pict view used by the "ContentView Binding" panel
+// demo. The shell binds this view to a collapsible panel via the
+// `ContentView: 'ShellDemo-Counter'` option, then auto-renders it at
+// creation and on every expand transition. Each render increments a
+// counter so the user sees concrete evidence of the auto-render.
+class ShellDemoCounterView extends libPictView
+{
+	constructor(pFable, pOptions, pServiceHash)
+	{
+		super(pFable, pOptions, pServiceHash);
+		this._tick = 0;
+	}
+	onBeforeRender()
+	{
+		this._tick++;
+		// Mutate AppData so the template picks it up — Pict resolves
+		// the template Record from DefaultTemplateRecordAddress
+		// BEFORE invoking onBeforeRender, so the return value here
+		// would be ignored.
+		this.pict.AppData.ShellDemo = this.pict.AppData.ShellDemo || {};
+		this.pict.AppData.ShellDemo.Tick = this._tick;
+	}
+}
+ShellDemoCounterView.default_configuration =
+{
+	ViewIdentifier:               'ShellDemo-Counter',
+	DefaultRenderable:            'ShellDemo-Counter-Renderable',
+	DefaultDestinationAddress:    '#ShellDemo-Counter-Slot',
+	DefaultTemplateRecordAddress: 'AppData.ShellDemo',
+	AutoRender:                   false,
+	Templates:
+	[
+		{
+			Hash: 'ShellDemo-Counter-Template',
+			Template: '<div style="padding:14px;font-size:13px;color:#9d174d;">'
+				+ '<div style="font-weight:600;margin-bottom:6px;">Auto-rendered by the shell.</div>'
+				+ '<div>Render tick: <strong>{~D:Record.Tick~}</strong></div>'
+				+ '</div>'
+		}
+	],
+	Renderables:
+	[
+		{
+			RenderableHash: 'ShellDemo-Counter-Renderable',
+			TemplateHash:   'ShellDemo-Counter-Template',
+			ContentDestinationAddress: '#ShellDemo-Counter-Slot',
+			RenderMethod:   'replace'
+		}
+	]
+};
 
 // -- Code Snippet Configurations (read-only display blocks) --
 
@@ -104,6 +157,64 @@ const _CodeSnippets =
 		ReadOnly: true,
 		LineNumbers: false,
 		DefaultCode: "// Split-button: chevron is the dropdown anchor; align right\n// keeps the menu under the addendum even on long labels.\ntmpModal.dropdown(arrowBtnEl,\n{\n\talign: 'right',\n\titems:\n\t[\n\t\t{ Header: 'Export format' },\n\t\t{ Hash: 'csv',  Label: 'CSV',  Hint: 'default' },\n\t\t{ Hash: 'json', Label: 'JSON' },\n\t\t{ Hash: 'xlsx', Label: 'Excel (XLSX)' },\n\t\t{ Separator: true },\n\t\t{ Hash: 'parquet', Label: 'Apache Parquet',\n\t\t  Disabled: true, Tooltip: 'Pro plan only' }\n\t]\n});"
+	},
+
+	// ── Shell + Panels playground ──────────────────────────────────
+	{
+		ViewIdentifier: 'CodeSnippet-Shell-Anatomy',
+		TargetElementAddress: '#code-snippet-shell-anatomy',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "// A shell owns a viewport — call it once with a container el.\nlet tmpShell = tmpModal.shell(viewportEl, {\n\tPersistenceKey: null   // null = don't persist, or 'my-app' to scope\n});\n\n// Each addPanel() call docks a panel to one of the four sides.\ntmpShell.addPanel({ Hash: 'top',    Side: 'top',    Mode: 'fixed', Size: 36 });\ntmpShell.addPanel({ Hash: 'bottom', Side: 'bottom', Mode: 'fixed', Size: 32 });\ntmpShell.addPanel({ Hash: 'left',   Side: 'left',   Mode: 'fixed', Size: 100 });\ntmpShell.addPanel({ Hash: 'right',  Side: 'right',  Mode: 'fixed', Size: 80 });\n\n// Center fills the remaining space — write into it directly.\ntmpShell.getCenterEl().innerHTML = '<p>Workspace</p>';"
+	},
+	{
+		ViewIdentifier: 'CodeSnippet-Shell-Modes',
+		TargetElementAddress: '#code-snippet-shell-modes',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "// fixed — no user interaction (e.g. topbar / statusbar)\ntmpShell.addPanel({\n\tHash: 'top',  Side: 'top',  Mode: 'fixed', Size: 36\n});\n\n// collapsible — user can toggle via the inner-edge collapse tab\ntmpShell.addPanel({\n\tHash: 'left', Side: 'left', Mode: 'collapsible',\n\tSize: 110, Title: 'Filters'\n});\n\n// resizable — user can both toggle AND drag the inner edge to resize\ntmpShell.addPanel({\n\tHash: 'bottom', Side: 'bottom', Mode: 'resizable',\n\tSize: 52, MinSize: 28, MaxSize: 120,\n\tTitle: 'Drag me'\n});"
+	},
+	{
+		ViewIdentifier: 'CodeSnippet-Shell-ContentView',
+		TargetElementAddress: '#code-snippet-shell-contentview',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "// 1. Register a Pict view normally:\npict.addView('MyApp-Sidebar', MyAppSidebarView.default_configuration, MyAppSidebarView);\n\n// 2. Bind it via ContentView when adding the panel — the shell\n//    auto-renders the view into the destination at creation and on\n//    every expand transition. Zero manual render() bookkeeping.\ntmpShell.addPanel({\n\tHash: 'sidebar', Side: 'left', Mode: 'collapsible',\n\tSize: 240, Title: 'Modules',\n\tContentDestinationId: 'MyApp-Sidebar-Slot',  // becomes <div id=...>\n\tContentView:          'MyApp-Sidebar'         // view to auto-render\n});"
+	},
+	{
+		ViewIdentifier: 'CodeSnippet-Shell-Hooks',
+		TargetElementAddress: '#code-snippet-shell-hooks',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "tmpShell.addPanel({\n\tHash: 'sidebar', Side: 'left', Mode: 'collapsible',\n\tSize: 140, Title: 'Hook me',\n\n\t// Fires when the panel transitions from collapsed to expanded.\n\t// Receives the panel handle so you can read state.\n\tOnExpand:   (pPanel) => fetchLatestData(),\n\n\t// Fires when the panel transitions from expanded to collapsed.\n\tOnCollapse: (pPanel) => saveDirtyState(),\n\n\t// Always fires — both directions. Receives the new collapsed value.\n\tOnToggle:   (pCollapsed) => updateAriaLive(pCollapsed)\n});"
+	},
+	{
+		ViewIdentifier: 'CodeSnippet-Shell-Persist',
+		TargetElementAddress: '#code-snippet-shell-persist',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "// PersistenceKey at the shell level is the localStorage scope.\nlet tmpShell = tmpModal.shell(viewportEl,\n{\n\tPersistenceKey: 'my-app:layout'\n});\n\n// Persist defaults to true. Set it to false to opt a single panel\n// out of persistence (e.g. a transient debug panel).\ntmpShell.addPanel({\n\tHash:    'sidebar',\n\tSide:    'left',\n\tMode:    'resizable',\n\tSize:    160,    // initial size — saved state overrides this on load\n\tPersist: true    // (default — set false to skip)\n});"
+	},
+	{
+		ViewIdentifier: 'CodeSnippet-Shell-Overlay',
+		TargetElementAddress: '#code-snippet-shell-overlay',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "// Position: 'overlay' renders the panel into the shell's overlay\n// layer (absolute positioning + box-shadow) instead of docking it\n// in a side stack. Center never gets pinched.\ntmpShell.addPanel({\n\tHash:     'sidebar',\n\tSide:     'left',         // controls which edge the overlay attaches to\n\tMode:     'collapsible',\n\tPosition: 'overlay',\n\tSize:     160,\n\tTitle:    'Overlay'\n});"
+	},
+	{
+		ViewIdentifier: 'CodeSnippet-Shell-Drawer',
+		TargetElementAddress: '#code-snippet-shell-drawer',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "// Below `ResponsiveDrawer` px viewport width, the side panel flips\n// into a top drawer — workspace gets full width, the user opens the\n// drawer via the handle pill that hangs from its bottom.\ntmpShell.addPanel({\n\tHash:             'sidebar',\n\tSide:             'left',\n\tMode:             'resizable',\n\tSize:             170,\n\tTitle:            'Filter',\n\tResponsiveDrawer: 1100,    // viewport-width breakpoint (px); 0 disables\n\tDrawerHeight:     '33%'    // CSS height when in drawer mode (default '33vh')\n});"
 	}
 ];
 
@@ -115,6 +226,11 @@ class PictApplicationModalGarden extends libPictApplication
 
 		this.pict.addView('PictSectionModal', libPictSectionModal.default_configuration, libPictSectionModal);
 		this.pict.addView('ModalGardenLayout', libPictViewModalGardenLayout.default_configuration, libPictViewModalGardenLayout);
+
+		// Demo view bound by the "ContentView Binding" shell card —
+		// the shell will auto-render this view into the panel's
+		// destination at creation and on every expand transition.
+		this.pict.addView('ShellDemo-Counter', ShellDemoCounterView.default_configuration, ShellDemoCounterView);
 
 		// Register all code snippet views
 		for (let i = 0; i < _CodeSnippets.length; i++)

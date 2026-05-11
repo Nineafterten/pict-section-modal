@@ -398,7 +398,187 @@ class PictViewModalGardenLayout extends libPictView
 			tmpDeleteMain.addEventListener('click', () => { fSetSplitResult('Delete (default action)'); });
 		}
 
+		// ── Shell + Panels playground ──
+		this._setupShellDemos(tmpModal);
+
 		return super.onAfterRender();
+	}
+
+	// ─────────────────────────────────────────────────────────────────────
+	//  Shell + Panels playground
+	//
+	//  Each demo creates a mini shell inside its own 280px-tall container
+	//  so panel options can be shown in isolation, without any one demo
+	//  owning the whole window.
+	//
+	//  pict-section-modal's shell() factory is scoped by viewport element:
+	//  calling `tmpModal.shell(divEl, options)` with N different div
+	//  elements creates N independent shells, all on the same page.
+	// ─────────────────────────────────────────────────────────────────────
+	_setupShellDemos(tmpModal)
+	{
+		// Inline content factories — each returns a div with the
+		// canonical "shell-demo-label" classes so the per-panel
+		// background colours from CSS apply automatically.
+		let fSide = (pText) => '<div class="shell-demo-label side">'   + pText + '</div>';
+		let fCent = (pText) => '<div class="shell-demo-label center">' + pText + '</div>';
+
+		// ─── Demo 1: anatomy (all four sides + center) ──────────
+		let tmpAnatomyEl = document.getElementById('shell-demo-anatomy');
+		if (tmpAnatomyEl)
+		{
+			let tmpShell = tmpModal.shell(tmpAnatomyEl, { PersistenceKey: null });
+			tmpShell.addPanel({ Hash: 'a-top',    Side: 'top',    Mode: 'fixed', Size: 36 });
+			tmpShell.addPanel({ Hash: 'a-bottom', Side: 'bottom', Mode: 'fixed', Size: 32 });
+			tmpShell.addPanel({ Hash: 'a-left',   Side: 'left',   Mode: 'fixed', Size: 100 });
+			tmpShell.addPanel({ Hash: 'a-right',  Side: 'right',  Mode: 'fixed', Size: 80 });
+			// Add the per-side label + class for the per-panel bg colour.
+			tmpShell.getPanel('a-top').El.classList.add('panel-top');
+			tmpShell.getPanel('a-top').getContentEl().innerHTML = fSide('Top');
+			tmpShell.getPanel('a-bottom').El.classList.add('panel-bottom');
+			tmpShell.getPanel('a-bottom').getContentEl().innerHTML = fSide('Bottom');
+			tmpShell.getPanel('a-left').El.classList.add('panel-left');
+			tmpShell.getPanel('a-left').getContentEl().innerHTML = fSide('Left');
+			tmpShell.getPanel('a-right').El.classList.add('panel-right');
+			tmpShell.getPanel('a-right').getContentEl().innerHTML = fSide('Right');
+			tmpShell.getCenterEl().innerHTML = fCent('Center workspace — the flex-grow region that fills the remaining space after side panels are laid out.');
+		}
+
+		// ─── Demo 2: panel modes ────────────────────────────────
+		let tmpModesEl = document.getElementById('shell-demo-modes');
+		if (tmpModesEl)
+		{
+			let tmpShell = tmpModal.shell(tmpModesEl, { PersistenceKey: null });
+			tmpShell.addPanel({ Hash: 'm-top',    Side: 'top',    Mode: 'fixed',       Size: 36 });
+			tmpShell.addPanel({ Hash: 'm-left',   Side: 'left',   Mode: 'collapsible', Size: 110, Title: 'Filters' });
+			tmpShell.addPanel({ Hash: 'm-bottom', Side: 'bottom', Mode: 'resizable',   Size: 52,  MinSize: 28, MaxSize: 120, Title: 'Drag me' });
+			tmpShell.getPanel('m-top').El.classList.add('panel-top');
+			tmpShell.getPanel('m-top').getContentEl().innerHTML       = fSide('Fixed top');
+			tmpShell.getPanel('m-left').El.classList.add('panel-left');
+			tmpShell.getPanel('m-left').getContentEl().innerHTML      = fSide('Collapsible');
+			tmpShell.getPanel('m-bottom').El.classList.add('panel-bottom');
+			tmpShell.getPanel('m-bottom').getContentEl().innerHTML    = fSide('Resizable');
+			tmpShell.getCenterEl().innerHTML = fCent("Click the left panel's tab to collapse / expand it. Drag the bottom panel's top edge to resize it.");
+		}
+
+		// ─── Demo 3: ContentView binding ────────────────────────
+		let tmpContentViewEl = document.getElementById('shell-demo-contentview');
+		if (tmpContentViewEl)
+		{
+			let tmpShell = tmpModal.shell(tmpContentViewEl, { PersistenceKey: null });
+			// The shell auto-renders the named Pict view into the
+			// panel's ContentDestinationId at creation + on every
+			// expand transition. The 'ShellDemo-Counter' view is
+			// registered at the application bootstrap level — see
+			// Pict-Application-ModalGarden.js.
+			tmpShell.addPanel(
+			{
+				Hash:                 'cv-left',
+				Side:                 'left',
+				Mode:                 'collapsible',
+				Size:                 180,
+				Title:                'Counter',
+				ContentDestinationId: 'ShellDemo-Counter-Slot',
+				ContentView:          'ShellDemo-Counter'
+			});
+			tmpShell.getPanel('cv-left').El.classList.add('panel-left');
+			tmpShell.getCenterEl().innerHTML = fCent('Click the "Counter" tab to collapse the panel, then again to expand it — the shell re-renders the bound view on each expand, so the tick count goes up every time.');
+		}
+
+		// ─── Demo 4: lifecycle hooks ────────────────────────────
+		let tmpHooksEl = document.getElementById('shell-demo-hooks');
+		let tmpHooksLogEl = document.getElementById('shell-demo-hooks-log');
+		if (tmpHooksEl && tmpHooksLogEl)
+		{
+			let fLog = (pEvent, pState) =>
+			{
+				tmpHooksLogEl.innerHTML = '<strong>' + pEvent + '</strong> at '
+					+ new Date().toLocaleTimeString() + ' — Collapsed: ' + pState;
+			};
+			let tmpShell = tmpModal.shell(tmpHooksEl, { PersistenceKey: null });
+			tmpShell.addPanel(
+			{
+				Hash:       'hk-left',
+				Side:       'left',
+				Mode:       'collapsible',
+				Size:       140,
+				Title:      'Hook me',
+				OnExpand:   (pPanel) => fLog('OnExpand',   pPanel.Collapsed),
+				OnCollapse: (pPanel) => fLog('OnCollapse', pPanel.Collapsed),
+				OnToggle:   (pCollapsed) => fLog('OnToggle (arg=' + pCollapsed + ')', pCollapsed)
+			});
+			tmpShell.getPanel('hk-left').El.classList.add('panel-left');
+			tmpShell.getPanel('hk-left').getContentEl().innerHTML = fSide('Click my tab');
+			tmpShell.getCenterEl().innerHTML = fCent('Each expand / collapse fires three hooks in order: OnExpand or OnCollapse first (transition-specific), then OnToggle (always). Watch the log below.');
+		}
+
+		// ─── Demo 5: persistence ────────────────────────────────
+		let tmpPersistEl = document.getElementById('shell-demo-persist');
+		if (tmpPersistEl)
+		{
+			// PersistenceKey is the scope — set to a stable string per
+			// app/feature. Panels with Persist: true (default) save
+			// their Size + Collapsed under <PREFIX>+<key> in
+			// localStorage.
+			let tmpShell = tmpModal.shell(tmpPersistEl, { PersistenceKey: 'modal-garden:demo:persist' });
+			tmpShell.addPanel(
+			{
+				Hash:    'p-left',
+				Side:    'left',
+				Mode:    'resizable',
+				Size:    160,
+				MinSize: 100,
+				MaxSize: 240,
+				Title:   'Resizable'
+			});
+			tmpShell.getPanel('p-left').El.classList.add('panel-left');
+			tmpShell.getPanel('p-left').getContentEl().innerHTML = fSide('Drag, then reload');
+			tmpShell.getCenterEl().innerHTML = fCent('Drag the left panel wider or collapse it via the tab, then refresh this page. The shell finds the saved state under "modal-garden:demo:persist" in localStorage and restores it.');
+		}
+
+		// ─── Demo 6: overlay position ───────────────────────────
+		let tmpOverlayEl = document.getElementById('shell-demo-overlay');
+		if (tmpOverlayEl)
+		{
+			let tmpShell = tmpModal.shell(tmpOverlayEl, { PersistenceKey: null });
+			tmpShell.addPanel(
+			{
+				Hash:     'o-left',
+				Side:     'left',
+				Mode:     'collapsible',
+				Position: 'overlay',
+				Size:     160,
+				Title:    'Overlay'
+			});
+			tmpShell.getPanel('o-left').El.classList.add('panel-left');
+			tmpShell.getPanel('o-left').getContentEl().innerHTML = fSide('Position: overlay');
+			tmpShell.getCenterEl().innerHTML = fCent("The overlay panel floats above the center via the shell's overlay layer (absolute positioning + box-shadow). The center never gets pinched — workspace stays full-width. Click the tab to dismiss.");
+		}
+
+		// ─── Demo 7: responsive drawer ──────────────────────────
+		let tmpDrawerEl = document.getElementById('shell-demo-drawer');
+		if (tmpDrawerEl)
+		{
+			let tmpShell = tmpModal.shell(tmpDrawerEl, { PersistenceKey: null });
+			tmpShell.addPanel(
+			{
+				Hash:             'd-left',
+				Side:             'left',
+				Mode:             'resizable',
+				Size:             170,
+				MinSize:          120,
+				MaxSize:          280,
+				Title:            'Filter',
+				// 1100px is high enough that most laptop / docked-window
+				// setups will trigger the flip — change this to a
+				// smaller number (e.g. 600) for a phone-only trigger.
+				ResponsiveDrawer: 1100,
+				DrawerHeight:     '33%'
+			});
+			tmpShell.getPanel('d-left').El.classList.add('panel-left');
+			tmpShell.getPanel('d-left').getContentEl().innerHTML = fSide('Resize me');
+			tmpShell.getCenterEl().innerHTML = fCent('In wide mode this is a docked left panel. Under 1100px viewport width the same panel flips into a top drawer with a handle pill — workspace stays full-width either way.');
+		}
 	}
 }
 
@@ -670,6 +850,65 @@ PictViewModalGardenLayout.default_configuration =
 			padding-right: 10px !important;
 			min-width: 32px;
 		}
+
+		/* ───────────────────────────────────────────────────────────
+		   Shell + Panels playground — mini-shell containers
+		   ─────────────────────────────────────────────────────────── */
+		.shell-demo-viewport
+		{
+			position: relative;
+			width: 100%;
+			height: 280px;
+			border: 1px solid #e5e7eb;
+			border-radius: 6px;
+			overflow: hidden;
+			background: #fafafa;
+			margin: 12px 0;
+		}
+		/* Sample content rendered inside demo panels — text in
+		   a tinted label that says which panel it lives in. */
+		.shell-demo-label
+		{
+			padding: 8px 12px;
+			font-size: 12px;
+			font-weight: 600;
+			color: #374151;
+			letter-spacing: 0.4px;
+			text-transform: uppercase;
+		}
+		.shell-demo-label.side
+		{
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100%;
+			text-align: center;
+		}
+		.shell-demo-label.center
+		{
+			padding: 16px 20px;
+			text-transform: none;
+			font-size: 13px;
+			font-weight: 400;
+			color: #4b5563;
+			line-height: 1.55;
+		}
+		.shell-demo-viewport .panel-top    .shell-demo-label { background: #dbeafe; color: #1e40af; }
+		.shell-demo-viewport .panel-bottom .shell-demo-label { background: #fef3c7; color: #92400e; }
+		.shell-demo-viewport .panel-left   .shell-demo-label { background: #fce7f3; color: #9d174d; }
+		.shell-demo-viewport .panel-right  .shell-demo-label { background: #e0e7ff; color: #3730a3; }
+		.shell-demo-hook-log
+		{
+			margin-top: 8px;
+			padding: 8px 12px;
+			font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			font-size: 12px;
+			color: #4b5563;
+			background: #f3f4f6;
+			border-radius: 4px;
+			min-height: 1.2em;
+		}
+		.shell-demo-hook-log strong { color: #111827; }
 	`,
 
 	Templates:
@@ -841,6 +1080,73 @@ PictViewModalGardenLayout.default_configuration =
 		</div>
 		<div class="result-display result-default" id="dropdown-split-result">Selected: (none)</div>
 		<div id="code-snippet-dropdown-split"></div>
+	</div>
+
+	<hr class="section-divider" />
+
+	<!-- ═══ Shell + Panels playground ══════════════════════════════════
+	     The shell() API is qualitatively different from the popup APIs
+	     above — it owns a viewport's whole layout. Each card below
+	     creates a small standalone shell inside its own 280px-tall
+	     container, isolated from the rest of the page, so each option
+	     can be demonstrated without owning the whole window.
+	     ═══════════════════════════════════════════════════════════════ -->
+
+	<!-- Shell anatomy: four sides + center -->
+	<div class="garden-card">
+		<h2>Shell Anatomy</h2>
+		<p class="card-description">A shell is a viewport-filling layout with four addressable side stacks (top / right / bottom / left) plus a center workspace. Each side can hold one or many panels.</p>
+		<div id="shell-demo-anatomy" class="shell-demo-viewport"></div>
+		<div id="code-snippet-shell-anatomy"></div>
+	</div>
+
+	<!-- Shell — panel modes -->
+	<div class="garden-card">
+		<h2>Panel Modes</h2>
+		<p class="card-description">Each panel picks a <code>Mode</code>: <strong>fixed</strong> (no user interaction), <strong>collapsible</strong> (toggle via tab), or <strong>resizable</strong> (drag handle + toggle tab). Below: a fixed top, a collapsible left with a "Filters" tab, and a resizable bottom with the drag handle on its inner edge.</p>
+		<div id="shell-demo-modes" class="shell-demo-viewport"></div>
+		<div id="code-snippet-shell-modes"></div>
+	</div>
+
+	<!-- Shell — ContentView binding -->
+	<div class="garden-card">
+		<h2>ContentView Binding</h2>
+		<p class="card-description">A panel can name a Pict view (<code>ContentView</code>) and the shell auto-renders it into the panel's destination at creation + on every expand transition. No manual <code>view.render()</code> bookkeeping needed.</p>
+		<div id="shell-demo-contentview" class="shell-demo-viewport"></div>
+		<div id="code-snippet-shell-contentview"></div>
+	</div>
+
+	<!-- Shell — lifecycle hooks -->
+	<div class="garden-card">
+		<h2>Lifecycle Hooks</h2>
+		<p class="card-description">Each panel can subscribe to <code>OnExpand</code>, <code>OnCollapse</code>, and <code>OnToggle</code> — useful for fetching data the moment a panel opens, or marking dirty state when it closes. Click the tab to toggle and watch the log below.</p>
+		<div id="shell-demo-hooks" class="shell-demo-viewport"></div>
+		<div class="shell-demo-hook-log" id="shell-demo-hooks-log"><em>Click the collapse tab on the left panel to see hooks fire</em></div>
+		<div id="code-snippet-shell-hooks"></div>
+	</div>
+
+	<!-- Shell — persistence -->
+	<div class="garden-card">
+		<h2>Persistence</h2>
+		<p class="card-description">Pass a <code>PersistenceKey</code> when constructing the shell, and panels with <code>Persist: true</code> (the default) save their size + collapsed state to localStorage under that key. <strong>Try it</strong>: drag the left panel wider or collapse it, then reload the page — state survives.</p>
+		<div id="shell-demo-persist" class="shell-demo-viewport"></div>
+		<div id="code-snippet-shell-persist"></div>
+	</div>
+
+	<!-- Shell — overlay -->
+	<div class="garden-card">
+		<h2>Overlay Position</h2>
+		<p class="card-description">Set <code>Position: 'overlay'</code> on a panel to render it absolutely positioned over the workspace center (with a brand-tinted shadow) instead of pinching the center. The collapse tab still lets the user dismiss it; the workspace below stays full-width either way.</p>
+		<div id="shell-demo-overlay" class="shell-demo-viewport"></div>
+		<div id="code-snippet-shell-overlay"></div>
+	</div>
+
+	<!-- Shell — responsive drawer -->
+	<div class="garden-card">
+		<h2>Responsive Drawer</h2>
+		<p class="card-description">Pass <code>ResponsiveDrawer: &lt;px&gt;</code> on a side panel and below that viewport width the panel flips from a docked column into a top drawer with a handle pill — workspace gets full width, user still controls collapse/expand. <strong>Try it</strong>: drag the demo's left panel narrow, OR shrink your browser window narrower than 1100px (the breakpoint chosen for this demo) to see the flip live.</p>
+		<div id="shell-demo-drawer" class="shell-demo-viewport"></div>
+		<div id="code-snippet-shell-drawer"></div>
 	</div>
 
 </div>
