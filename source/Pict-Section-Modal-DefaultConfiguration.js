@@ -1126,6 +1126,188 @@ module.exports = (
 .pict-modal-shell-overlay-layer .pict-modal-shell-panel-top    { top:    0; left: 0; right: 0; }
 .pict-modal-shell-overlay-layer .pict-modal-shell-panel-bottom { bottom: 0; left: 0; right: 0; }
 
+/* ─────────────────────────────────────────────────────────────────
+   Responsive drawer mode — .pict-modal-shell-drawer-active toggles
+   onto the middle row when any panel with ResponsiveDrawer crosses
+   below its breakpoint. Flips the row's flex-direction from row to
+   column, stacking side panels above the center and stretching them
+   to full width. Each opted-in panel itself gets the
+   .pict-modal-shell-panel-drawer class so per-panel rules below
+   target only the drawer-mode panels (right + non-drawer panels in
+   the same row are unaffected). The drawer height is read from a
+   per-panel --pict-modal-drawer-height CSS variable (default
+   33vh, set in JS from the DrawerHeight option).
+   ───────────────────────────────────────────────────────────────── */
+.pict-modal-shell-row-middle.pict-modal-shell-drawer-active
+{
+	flex-direction: column;
+	/* The drawer tab lives outside the drawer's bottom edge — ancestor
+	   chain MUST allow it to escape clip. */
+	overflow: visible;
+}
+.pict-modal-shell-row-middle.pict-modal-shell-drawer-active .pict-modal-shell-side
+{
+	/* Side stacks stretch full-width and lay out their panels as a
+	   horizontal row of stacked drawers (so two drawers from the same
+	   side don't end up overlapping). overflow: visible so the
+	   per-panel tab can extend below the side stack into the workspace. */
+	width: 100% !important;
+	flex-direction: column;
+	overflow: visible;
+}
+/* The drawer-tagged panel itself: kill the inline width set by
+   _applySize (we override with !important since the inline style has
+   higher specificity than a class selector), then size by height
+   from the CSS variable. Resize handle is hidden in drawer mode
+   because horizontal dragging doesn't translate to vertical sizing
+   and the user already has the collapse tab to dismiss / restore.
+
+   padding-bottom reserves an 18px strip at the bottom of the panel
+   for the tab. The tab sits INSIDE the drawer's footprint — never
+   below it — so the workspace header below the drawer is never in
+   the same vertical band as the tab. (Previously the tab hung
+   below the drawer's bottom edge into the workspace's top padding;
+   that made the tab visually compete with the workspace header,
+   even when the tab box-model bounds technically cleared the
+   header.) box-sizing: border-box so the padding eats from the
+   33vh, not adding to it. */
+.pict-modal-shell-panel-drawer
+{
+	width: 100% !important;
+	max-width: 100% !important;
+	height: var(--pict-modal-drawer-height, 33vh);
+	transition: height 140ms ease;
+	padding-bottom: 18px;
+	box-sizing: border-box;
+	overflow: visible !important;
+	/* Clip the panel bg to its CONTENT area only — the 18px
+	   padding-bottom reserve (where the tab lives) becomes
+	   transparent, so the middle row's primary background shows
+	   through. Without this the reserve would render with the
+	   panel's chrome bg, creating a visible "strip" between the
+	   drawer content above and the workspace below — the tab would
+	   look like it's sitting on its own miscoloured band rather
+	   than at the seam between drawer and workspace. */
+	background-clip: content-box;
+}
+.pict-modal-shell-panel-drawer.pict-modal-shell-panel-collapsed
+{
+	/* Collapsed = "just the tab strip is visible". 18px matches the
+	   panel's tab reserve so the height is consistent across states.
+	   When this is 0 the tab would have nowhere to render and the
+	   user couldn't reopen the drawer. */
+	height: 18px !important;
+	padding-bottom: 0 !important;
+	/* Drop the panel's bg in collapsed state — without this the 18px
+	   strip shows the --pict-modal-bg (panel chrome) which doesn't
+	   match the workspace --theme-color-background-primary below it,
+	   creating a visible "drawer band" around the tab that breaks the
+	   illusion of the tab belonging to the workspace area. With
+	   transparent bg the middle row's primary background shows
+	   through, the strip blends with the workspace, and the tab pill
+	   reads as a free-floating handle. */
+	background: transparent !important;
+}
+.pict-modal-shell-panel-drawer > .pict-modal-shell-panel-resize-handle
+{
+	display: none;
+}
+/* The drawer's collapse tab is a horizontal pill protruding from the
+   bottom of the drawer (rather than the inner edge of a side panel).
+   Override the side-panel positioning rules from above so the tab
+   always sits at the drawer's bottom-center seam, in both expanded
+   and collapsed states. The expand-from-zero affordance: when
+   collapsed (height: 0), the tab still hangs below "where the
+   drawer would be" — a small handle the user can click to pull
+   the drawer back down. */
+.pict-modal-shell-panel-drawer > .pict-modal-shell-panel-collapse-tab,
+.pict-modal-shell-panel-drawer.pict-modal-shell-panel-collapsed > .pict-modal-shell-panel-collapse-tab
+{
+	position: absolute !important;
+	/* Anchored to the panel's BOTTOM edge — the tab lives INSIDE the
+	   drawer's footprint (in the 18px reserve at the bottom), never
+	   below it into the workspace. This means the workspace below
+	   the drawer is never sharing a vertical band with the tab, so
+	   the workspace header doesn't optically compete with it. */
+	top: auto !important;
+	bottom: 2px !important;
+	left: 50% !important;
+	right: auto !important;
+	transform: translate(-50%, 0) !important;
+	width: 64px !important;
+	height: 14px !important;
+	/* CRITICAL: border-box + padding: 0 — the collapsed-state base
+	   rule inherits "padding: 12px 4px" (so the chevron clears the
+	   edges of a tab that fills a 24px-wide side strip). In drawer
+	   mode the tab is a 14px tall pill, NOT a strip-fill, so that
+	   12px vertical padding would balloon the tab's outer height to
+	   ~38px and crash into the workspace header text. The chevron
+	   is centered via flex anyway. */
+	box-sizing: border-box !important;
+	padding: 0 !important;
+	/* Rounded BOTTOM corners + no top border — the tab looks like a
+	   traditional drawer-handle/tab hanging from above. Its rounded
+	   bottom curves face the workspace (the "open downward" affordance
+	   for a top drawer). border-top: 0 lets the tab visually merge
+	   with whatever's directly above it inside the panel (sidebar
+	   content when expanded, the panel background when collapsed). */
+	border-radius: 0 0 8px 8px;
+	border: 1px solid var(--pict-modal-border, var(--theme-color-border-default, #cfd5dd));
+	border-top: 0;
+	background: var(--pict-modal-bg, var(--theme-color-background-panel, #fff));
+	opacity: 0.95;
+	z-index: 20;
+	/* The default side-panel hover-grow values would yank the tab off
+	   to the wrong spot in drawer mode — neutralise. */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.pict-modal-shell-panel-drawer > .pict-modal-shell-panel-collapse-tab:hover,
+.pict-modal-shell-panel-drawer.pict-modal-shell-panel-collapsed > .pict-modal-shell-panel-collapse-tab:hover
+{
+	opacity: 1;
+	width: 96px !important;
+	height: 18px !important;
+	color: var(--brand-color-primary-mode, var(--theme-color-brand-primary, #2563eb));
+	border-color: var(--brand-color-primary-mode, var(--theme-color-brand-primary, #2563eb));
+	box-shadow: 0 3px 6px -2px rgba(0, 0, 0, 0.18);
+}
+/* Hover height-grow override for COLLAPSED state. The default hover
+   rule above grows the tab from 14px → 18px height; since the tab is
+   anchored with bottom: 2px, the 4px of growth pushes the tab's TOP
+   edge UPWARD. In expanded state that's fine (the drawer is 33vh
+   tall so there's room above), but in collapsed state the panel is
+   only 18px tall — a grown tab spills 2px past the panel's top edge
+   into the topbar's brand-stripe band. Keep the tab's height steady
+   when collapsed; the width grow alone (64 → 96, +50%) still gives
+   the user the "tab is reaching toward me" hover affordance. */
+.pict-modal-shell-panel-drawer.pict-modal-shell-panel-collapsed > .pict-modal-shell-panel-collapse-tab:hover
+{
+	height: 14px !important;
+}
+/* Chevron inside the tab: point UP when expanded (the drawer
+   collapses UP / out of view, so the arrow indicates "click me to
+   send the drawer up"), DOWN when collapsed (the drawer expands DOWN
+   into view). Rotations come from the existing top-panel chevron
+   table: rotate(-135deg) → UP arrow, rotate(45deg) → DOWN arrow. */
+.pict-modal-shell-panel-drawer > .pict-modal-shell-panel-collapse-tab::before
+{
+	transform: rotate(-135deg) !important;
+}
+.pict-modal-shell-panel-drawer.pict-modal-shell-panel-collapsed > .pict-modal-shell-panel-collapse-tab::before
+{
+	transform: rotate(45deg) !important;
+}
+/* The collapse tab's existing title-text span is hidden when reduced
+   to a pill — there's no horizontal room. The chevron alone reads
+   correctly. */
+.pict-modal-shell-panel-drawer > .pict-modal-shell-panel-collapse-tab .pict-modal-shell-panel-collapse-tab-title,
+.pict-modal-shell-panel-drawer > .pict-modal-shell-panel-collapse-tab .pict-modal-shell-panel-collapse-tab-icon
+{
+	display: none;
+}
+
 /* Drag-active state — disable text selection + change cursor globally
    so resize feels solid even when the cursor briefly leaves the handle. */
 .pict-modal-shell-dragging-x, .pict-modal-shell-dragging-y { user-select: none; }

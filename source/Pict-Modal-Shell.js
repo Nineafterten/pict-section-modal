@@ -441,6 +441,32 @@ class ShellPanel
 		this._buildEl(pConfig);
 		this._applySize();
 		this._applyCollapsedClass();
+
+		// Responsive drawer — at narrow viewports, flip a docked side
+		// panel into a "top drawer" by adding a class to the middle row
+		// that toggles flex-direction from row to column. The panel
+		// stretches to full width and trades its inline `width` for a
+		// configurable drawer `height`. The user's collapse/expand
+		// keeps working: collapsed in drawer mode just gives the panel
+		// height: 0 (so only the collapse tab remains visible at the
+		// top of the content), expanded restores the drawer height.
+		// Pass `0` or omit to disable. Mirrors retold-remote's
+		// `.content-editor-body { flex-direction: column }` pattern.
+		this.ResponsiveDrawer = (typeof pConfig.ResponsiveDrawer === 'number'
+			&& pConfig.ResponsiveDrawer > 0)
+				? pConfig.ResponsiveDrawer : 0;
+		// Drawer height — applied as `height` to the panel in drawer
+		// mode. CSS units (px / vh / %) accepted. Default 33vh which
+		// gives the panel roughly a third of the viewport height and
+		// leaves comfortable room for the workspace below.
+		this.DrawerHeight = (typeof pConfig.DrawerHeight === 'string' && pConfig.DrawerHeight)
+			? pConfig.DrawerHeight : '33vh';
+		this._mediaQuery = null;
+		this._mediaQueryHandler = null;
+		if (this.ResponsiveDrawer > 0)
+		{
+			this._wireResponsiveDrawer();
+		}
 	}
 
 	// ───────────── public ─────────────
@@ -503,6 +529,7 @@ class ShellPanel
 
 	destroy(pSkipFromShell)
 	{
+		this._unwireResponsiveDrawer();
 		if (this.El && this.El.parentNode) this.El.parentNode.removeChild(this.El);
 		if (!pSkipFromShell)
 		{
@@ -518,6 +545,144 @@ class ShellPanel
 	{
 		if (this.Size < this.MinSize) this.Size = this.MinSize;
 		if (this.Size > this.MaxSize) this.Size = this.MaxSize;
+	}
+
+	// Responsive drawer — sets up a matchMedia listener for
+	// `(max-width: <ResponsiveDrawer>px)`. Each crossing flips the
+	// shell's middle row between row layout (wide) and column layout
+	// (narrow) by toggling the `pict-modal-shell-drawer-active` class
+	// on the middle row. The matching CSS makes side panels expand to
+	// full width with a fixed `DrawerHeight`, becoming top/bottom
+	// drawers above/below the workspace center. Collapsed in drawer
+	// mode collapses to height: 0, leaving only the collapse tab.
+	//
+	// This pattern is the conventional "responsive sidebar" approach
+	// (used by retold-remote's content editor) — the user keeps their
+	// sidebar accessible at narrow widths but it gives the workspace
+	// room to breathe.
+	_wireResponsiveDrawer()
+	{
+		if (typeof window === 'undefined' || !window.matchMedia) return;
+
+		this._mediaQuery = window.matchMedia('(max-width: ' + this.ResponsiveDrawer + 'px)');
+
+		// Apply the drawer height as a CSS variable on the panel
+		// element so the static CSS rules can read it. Doing this once
+		// here avoids per-event JS style writes.
+		if (this.El) { this.El.style.setProperty('--pict-modal-drawer-height', this.DrawerHeight); }
+
+		let tmpSelf = this;
+		this._mediaQueryHandler = function (pEvent)
+		{
+			let tmpNarrow = (pEvent && typeof pEvent.matches === 'boolean')
+				? pEvent.matches
+				: tmpSelf._mediaQuery.matches;
+			tmpSelf._setDrawerMode(tmpNarrow);
+		};
+
+		// Apply the current state immediately (handles the case where the
+		// page loads already-narrow). Newer browsers use addEventListener;
+		// older ones use addListener.
+		if (this._mediaQuery.addEventListener)
+		{
+			this._mediaQuery.addEventListener('change', this._mediaQueryHandler);
+		}
+		else if (this._mediaQuery.addListener)
+		{
+			this._mediaQuery.addListener(this._mediaQueryHandler);
+		}
+		this._mediaQueryHandler({ matches: this._mediaQuery.matches });
+
+		// Belt + suspenders: also listen to window resize and re-sync.
+		// `matchMedia.change` is supposed to be reliable on every
+		// boundary crossing, but in real-world testing (esp. when the
+		// user is dragging DevTools to resize the inner viewport, or
+		// going through fast successive crossings) we've seen the
+		// change event silently miss. A plain resize listener is
+		// cheap and the handler is idempotent — if matches state
+		// hasn't actually changed the body of `_setDrawerMode` is a
+		// no-op (it short-circuits when classes are already correct).
+		this._resizeHandler = function ()
+		{
+			tmpSelf._setDrawerMode(tmpSelf._mediaQuery.matches);
+		};
+		window.addEventListener('resize', this._resizeHandler);
+	}
+
+	_unwireResponsiveDrawer()
+	{
+		if (this._resizeHandler && typeof window !== 'undefined')
+		{
+			window.removeEventListener('resize', this._resizeHandler);
+			this._resizeHandler = null;
+		}
+		if (!this._mediaQuery || !this._mediaQueryHandler) return;
+		if (this._mediaQuery.removeEventListener)
+		{
+			this._mediaQuery.removeEventListener('change', this._mediaQueryHandler);
+		}
+		else if (this._mediaQuery.removeListener)
+		{
+			this._mediaQuery.removeListener(this._mediaQueryHandler);
+		}
+		this._mediaQuery = null;
+		this._mediaQueryHandler = null;
+	}
+
+	// Toggle drawer mode by adding / removing a class on the shell's
+	// middle row. The CSS rule for `.pict-modal-shell-drawer-active`
+	// flips flex-direction column, makes side panels full-width, and
+	// applies the panel's `--pict-modal-drawer-height` for sizing.
+	// Also tags the panel itself so per-panel CSS can target it.
+	// Re-applies the inline size at the end so the wide-mode crossing
+	// gets a clean width back (drawer mode forced width: 100% via CSS
+	// !important; the inline style was stale).
+	_setDrawerMode(pDrawer)
+	{
+		if (!this._shell || !this._shell._middleRow) return;
+		// Idempotent — short-circuit when the panel's drawer state
+		// already matches the target. Keeps the resize-event fallback
+		// (which fires constantly during drag-resize) from doing
+		// pointless DOM thrash + style re-application every frame.
+		let tmpCurrentlyDrawer = !!(this.El
+			&& this.El.classList.contains('pict-modal-shell-panel-drawer'));
+		if (tmpCurrentlyDrawer === !!pDrawer) return;
+		if (pDrawer)
+		{
+			this._shell._middleRow.classList.add('pict-modal-shell-drawer-active');
+			if (this.El) { this.El.classList.add('pict-modal-shell-panel-drawer'); }
+		}
+		else
+		{
+			// Only remove the row-level class if NO other panel still
+			// wants drawer mode. Multi-panel hosts can safely each opt
+			// in independently this way.
+			let tmpStillNarrow = false;
+			let tmpPanels = this._shell._panels || [];
+			for (let i = 0; i < tmpPanels.length; i++)
+			{
+				let tmpP = tmpPanels[i];
+				if (tmpP !== this
+					&& tmpP._mediaQuery
+					&& tmpP._mediaQuery.matches
+					&& tmpP.ResponsiveDrawer > 0)
+				{
+					tmpStillNarrow = true;
+					break;
+				}
+			}
+			if (!tmpStillNarrow)
+			{
+				this._shell._middleRow.classList.remove('pict-modal-shell-drawer-active');
+			}
+			if (this.El) { this.El.classList.remove('pict-modal-shell-panel-drawer'); }
+		}
+		// Re-apply inline size. In drawer mode the CSS !important
+		// rule overrides this anyway, but on the wide crossing we
+		// need the inline width to be correct so the panel shows up
+		// at its proper docked / collapsed-docked size rather than
+		// inheriting any stale state.
+		this._applySize();
 	}
 
 	_buildEl(pConfig)
