@@ -1228,9 +1228,17 @@ module.exports = (
 	   drawer's footprint (in the 18px reserve at the bottom), never
 	   below it into the workspace. This means the workspace below
 	   the drawer is never sharing a vertical band with the tab, so
-	   the workspace header doesn't optically compete with it. */
+	   the workspace header doesn't optically compete with it.
+	   bottom: 4px aligns the tab's top edge exactly with the panel's
+	   CONTENT-AREA bottom (panel.height − padding-bottom 18px). With
+	   border-top: 0 on the tab, the seam between the drawer content
+	   above and the tab body is invisible — they share --pict-modal-bg
+	   and merge into one shape, the tab reading as a labelled
+	   extension of the drawer hanging downward. Collapsed state
+	   keeps the smaller offset (overridden below) because its panel
+	   has no padding-bottom, so the math doesn't apply. */
 	top: auto !important;
-	bottom: 2px !important;
+	bottom: 4px !important;
 	left: 50% !important;
 	right: auto !important;
 	transform: translate(-50%, 0) !important;
@@ -1268,23 +1276,29 @@ module.exports = (
 {
 	opacity: 1;
 	width: 96px !important;
-	height: 18px !important;
+	/* height stays at 14px — the tab is anchored with bottom, so any
+	   height growth would push the tab's TOP edge UPWARD past the
+	   space available above it. In EXPANDED state that crashes into
+	   the drawer content above; in COLLAPSED state it crashes into
+	   the topbar's brand stripes. Width-only growth (64 to 96, +50%)
+	   still gives the "tab is reaching toward me" affordance without
+	   the encroachment. */
 	color: var(--brand-color-primary-mode, var(--theme-color-brand-primary, #2563eb));
 	border-color: var(--brand-color-primary-mode, var(--theme-color-brand-primary, #2563eb));
 	box-shadow: 0 3px 6px -2px rgba(0, 0, 0, 0.18);
 }
-/* Hover height-grow override for COLLAPSED state. The default hover
-   rule above grows the tab from 14px → 18px height; since the tab is
-   anchored with bottom: 2px, the 4px of growth pushes the tab's TOP
-   edge UPWARD. In expanded state that's fine (the drawer is 33vh
-   tall so there's room above), but in collapsed state the panel is
-   only 18px tall — a grown tab spills 2px past the panel's top edge
-   into the topbar's brand-stripe band. Keep the tab's height steady
-   when collapsed; the width grow alone (64 → 96, +50%) still gives
-   the user the "tab is reaching toward me" hover affordance. */
-.pict-modal-shell-panel-drawer.pict-modal-shell-panel-collapsed > .pict-modal-shell-panel-collapse-tab:hover
+/* Collapsed-state bottom-offset override. Expanded panels have an
+   18px padding-bottom reserve, and "bottom: 4px" anchors the tab's
+   top edge exactly at the content-area boundary (so it merges
+   visually with the drawer above). Collapsed panels have
+   padding-bottom: 0 and a total height of 18px — "bottom: 4px"
+   there would put the tab's top at the panel's actual top edge,
+   crashing the (border-top: 0) tab into the topbar. The smaller
+   "bottom: 2px" keeps the 14px tab vertically centered in the 18px
+   strip with 2px margins on either side. */
+.pict-modal-shell-panel-drawer.pict-modal-shell-panel-collapsed > .pict-modal-shell-panel-collapse-tab
 {
-	height: 14px !important;
+	bottom: 2px !important;
 }
 /* Chevron inside the tab: point UP when expanded (the drawer
    collapses UP / out of view, so the arrow indicates "click me to
