@@ -909,7 +909,13 @@ module.exports = (
 	padding: 0;
 	box-sizing: border-box;
 	line-height: 0;          /* keep child boxes from inflating around the rotated chevron */
-	transition: opacity 160ms ease, width 160ms ease, height 160ms ease,
+	/* Geometry (width/height/right/left) is intentionally NOT animated.
+	   Sliding the tab's outer edge inward on hover-out makes it look like
+	   the tab is "sliding into" the panel content — weird visual.
+	   Snapping the size change instead, and animating only the appearance
+	   (opacity/color/shadow), gives a clean fade-in/out with no boundary
+	   weirdness. */
+	transition: opacity 160ms ease,
 	            background-color 160ms ease, color 160ms ease,
 	            border-color 160ms ease, box-shadow 160ms ease;
 }

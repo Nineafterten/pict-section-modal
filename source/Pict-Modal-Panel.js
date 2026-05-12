@@ -121,13 +121,22 @@ class PictModalPanel
 			tmpTarget.insertBefore(tmpEdge, tmpTarget.firstChild);
 		}
 
-		// ── Chevron SVG helper ──────────────────────────────
-		let tmpChevronRight = '<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,3 11,8 6,13"/></svg>';
-		let tmpChevronLeft = '<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,3 5,8 10,13"/></svg>';
+		// ── Chevron lookup via pict.providers.Icon ──────────
+		// Both directions come from the core registry (`{~I:ChevronLeft~}`
+		// / `{~I:ChevronRight~}`).  Resolved per-render so a theme that
+		// re-registers the chevron variant picks up automatically.  Empty
+		// fallback in the unlikely case pict is missing the Icon provider
+		// (very old pict versions; current minimum is 1.0.368).
+		let tmpPictHandle = (typeof (window) !== 'undefined' && window.pict) ? window.pict : null;
+		let tmpIcon = (pName) => (tmpPictHandle && typeof (tmpPictHandle.icon) === 'function')
+			? tmpPictHandle.icon(pName)
+			: '';
 
 		let tmpUpdateChevron = () =>
 		{
 			if (!tmpTab) return;
+			let tmpChevronRight = tmpIcon('ChevronRight');
+			let tmpChevronLeft  = tmpIcon('ChevronLeft');
 			if (tmpIsRight)
 			{
 				tmpTab.innerHTML = tmpIsCollapsed ? tmpChevronLeft : tmpChevronRight;
