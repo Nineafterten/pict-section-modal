@@ -1,99 +1,149 @@
 {
-	"Generated": "2026-04-10T17:25:42.102Z",
+	"Generated": "2026-05-22T05:45:41.299Z",
+	"Mode": "module",
 	"GitHubOrg": "stevenvelozo",
 	"DefaultBranch": "master",
-	"Groups": [
-		{
-			"Name": "Dist",
-			"Key": "dist",
-			"Description": "",
-			"Modules": [
-				{
-					"Name": "indoctrinate_content_staging",
-					"Repo": "indoctrinate_content_staging",
-					"Group": "dist",
-					"Branch": "master",
-					"HasDocs": false,
-					"HasCover": false,
-					"Sidebar": [],
-					"DocFiles": []
-				}
-			]
-		},
-		{
-			"Name": "Docs",
-			"Key": "docs",
-			"Description": "",
-			"Modules": [
-				{
-					"Name": "api",
-					"Repo": "api",
-					"Group": "docs",
-					"Branch": "master",
-					"HasDocs": true,
-					"HasCover": false,
-					"Sidebar": [],
-					"DocFiles": [
-						"api/confirm.md",
-						"api/dismissAll.md",
-						"api/doubleConfirm.md",
-						"api/richTooltip.md",
-						"api/show.md",
-						"api/theming.md",
-						"api/toast.md",
-						"api/tooltip.md"
-					]
-				},
-				{
-					"Name": "css",
-					"Repo": "css",
-					"Group": "docs",
-					"Branch": "master",
-					"HasDocs": true,
-					"HasCover": false,
-					"Sidebar": [],
-					"DocFiles": [
-						"css/docuserve.css"
-					]
-				}
-			]
-		},
-		{
-			"Name": "Example_applications",
-			"Key": "example_applications",
-			"Description": "",
-			"Modules": [
-				{
-					"Name": ".data",
-					"Repo": ".data",
-					"Group": "example_applications",
-					"Branch": "master",
-					"HasDocs": false,
-					"HasCover": false,
-					"Sidebar": [],
-					"DocFiles": []
-				},
-				{
-					"Name": "bookstore",
-					"Repo": "bookstore",
-					"Group": "example_applications",
-					"Branch": "master",
-					"HasDocs": false,
-					"HasCover": false,
-					"Sidebar": [],
-					"DocFiles": []
-				},
-				{
-					"Name": "modal_garden",
-					"Repo": "modal_garden",
-					"Group": "example_applications",
-					"Branch": "master",
-					"HasDocs": false,
-					"HasCover": false,
-					"Sidebar": [],
-					"DocFiles": []
-				}
-			]
-		}
-	]
+	"Module": {
+		"Name": "pict-section-modal",
+		"Repo": "pict-section-modal",
+		"Group": "",
+		"Branch": "master",
+		"HasDocs": true,
+		"HasCover": true,
+		"Sidebar": [
+			{
+				"Title": "Getting Started",
+				"Children": [
+					{
+						"Title": "Overview",
+						"Path": "README.md"
+					},
+					{
+						"Title": "Quick Start",
+						"Path": "Quick_Start.md"
+					}
+				]
+			},
+			{
+				"Title": "Architecture",
+				"Children": [
+					{
+						"Title": "Design Overview",
+						"Path": "Architecture.md"
+					}
+				]
+			},
+			{
+				"Title": "Reference",
+				"Children": [
+					{
+						"Title": "Implementation Reference",
+						"Path": "Implementation_Reference.md"
+					}
+				]
+			},
+			{
+				"Title": "API -- Confirmations",
+				"Children": [
+					{
+						"Title": "confirm",
+						"Path": "api/confirm.md"
+					},
+					{
+						"Title": "doubleConfirm",
+						"Path": "api/doubleConfirm.md"
+					}
+				]
+			},
+			{
+				"Title": "API -- Modal Windows",
+				"Children": [
+					{
+						"Title": "show",
+						"Path": "api/show.md"
+					}
+				]
+			},
+			{
+				"Title": "API -- Toast Notifications",
+				"Children": [
+					{
+						"Title": "toast",
+						"Path": "api/toast.md"
+					}
+				]
+			},
+			{
+				"Title": "API -- Tooltips",
+				"Children": [
+					{
+						"Title": "tooltip",
+						"Path": "api/tooltip.md"
+					},
+					{
+						"Title": "richTooltip",
+						"Path": "api/richTooltip.md"
+					}
+				]
+			},
+			{
+				"Title": "API -- Cleanup",
+				"Children": [
+					{
+						"Title": "dismissAll",
+						"Path": "api/dismissAll.md"
+					},
+					{
+						"Title": "dismissModals",
+						"Path": "api/dismissModals.md"
+					},
+					{
+						"Title": "dismissTooltips",
+						"Path": "api/dismissTooltips.md"
+					},
+					{
+						"Title": "dismissToasts",
+						"Path": "api/dismissToasts.md"
+					},
+					{
+						"Title": "destroy",
+						"Path": "api/destroy.md"
+					}
+				]
+			},
+			{
+				"Title": "API -- Theming",
+				"Children": [
+					{
+						"Title": "CSS Custom Properties",
+						"Path": "api/CSS_Custom_Properties.md"
+					}
+				]
+			}
+		],
+		"DocFiles": [
+			".nojekyll",
+			"Architecture.md",
+			"Implementation_Reference.md",
+			"Quick_Start.md",
+			"README.md",
+			"_brand.json",
+			"_cover.md",
+			"_sidebar.md",
+			"_topbar.md",
+			"_version.json",
+			"api/confirm.md",
+			"api/dismissAll.md",
+			"api/doubleConfirm.md",
+			"api/richTooltip.md",
+			"api/show.md",
+			"api/theming.md",
+			"api/toast.md",
+			"api/tooltip.md",
+			"index.html",
+			"retold-catalog.json",
+			"retold-keyword-index.json"
+		]
+	},
+	"Groups": []
 }
