@@ -1,6 +1,6 @@
 # Pict-Section-Modal
 
-A modal dialog, confirmation, tooltip, and toast notification section view for the [Pict](https://github.com/fable-retold/pict) application framework. Drop in a single view to get promise-based confirmations, custom floating windows, auto-dismissing toasts, and hover tooltips -- all styled through CSS custom properties.
+A modal dialog, confirmation, tooltip, and toast notification section view for the [Pict](https://fable-retold.github.io/pict/) application framework. Drop in a single view to get promise-based confirmations, custom floating windows, auto-dismissing toasts, and hover tooltips -- all styled through CSS custom properties.
 
 Pict-Section-Modal provides a complete notification and dialog toolkit -- confirm dialogs, double-confirm safety gates, custom modal windows with arbitrary content, toast notifications with stacking, and simple or rich interactive tooltips -- all composable through the Fable service provider pattern.
 
@@ -106,10 +106,10 @@ if (tmpConfirmed)
 
 Pict-Section-Modal is part of the [Retold](https://github.com/stevenvelozo/retold) module suite:
 
-- [pict](https://github.com/fable-retold/pict) -- Core MVC application framework
-- [pict-view](https://github.com/fable-retold/pict-view) -- View base class
-- [pict-section-form](https://github.com/fable-retold/pict-section-form) -- Form sections
-- [fable](https://github.com/fable-retold/fable) -- Service infrastructure and dependency injection
+- [pict](https://fable-retold.github.io/pict/) -- Core MVC application framework
+- [pict-view](https://fable-retold.github.io/pict-view/) -- View base class
+- [pict-section-form](https://fable-retold.github.io/pict-section-form/) -- Form sections
+- [fable](https://fable-retold.github.io/fable/) -- Service infrastructure and dependency injection
 
 ## License
 
