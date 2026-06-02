@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant App as Application
+    participant MV as PictSectionModal
+    participant OV as PictModalOverlay
+    participant DOM as document.body
+
+    App->>MV: confirm('Save?')
+    MV->>OV: show(clickHandler)
+    Note over OV: refCount: 0 -> 1
+    OV->>DOM: createElement('.pict-modal-overlay')
+    OV->>DOM: classList.add('pict-modal-visible')
+
+    App->>MV: confirm('Also save backup?')
+    MV->>OV: show(clickHandler)
+    Note over OV: refCount: 1 -> 2
+
+    Note over App: User clicks "OK" on second dialog
+    MV->>OV: hide()
+    Note over OV: refCount: 2 -> 1
+    Note over OV: Overlay stays visible
+
+    Note over App: User clicks "OK" on first dialog
+    MV->>OV: hide()
+    Note over OV: refCount: 1 -> 0
+    OV->>DOM: classList.remove('pict-modal-visible')
+    OV->>DOM: removeChild (after transition)

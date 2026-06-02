@@ -4,53 +4,8 @@ Pict-Section-Modal follows the standard Pict view pattern -- a single view class
 
 ## High-Level Design
 
-```mermaid
-graph TB
-    subgraph Application["Your Application"]
-        AppCode[Application Code]
-    end
-
-    subgraph ModalView["PictSectionModal (Main Entry Point)"]
-        direction TB
-        MV[PictSectionModal]
-    end
-
-    subgraph Helpers["Helper Classes"]
-        OV[PictModalOverlay]
-        CF[PictModalConfirm]
-        WN[PictModalWindow]
-        TS[PictModalToast]
-        TT[PictModalTooltip]
-    end
-
-    subgraph DOM["DOM Elements"]
-        Overlay[".pict-modal-overlay"]
-        Dialogs[".pict-modal-dialog"]
-        ToastContainers[".pict-modal-toast-container"]
-        Tooltips[".pict-modal-tooltip"]
-    end
-
-    AppCode --> MV
-    MV --> OV
-    MV --> CF
-    MV --> WN
-    MV --> TS
-    MV --> TT
-
-    CF --> OV
-    WN --> OV
-
-    CF --> Dialogs
-    WN --> Dialogs
-    OV --> Overlay
-    TS --> ToastContainers
-    TT --> Tooltips
-
-    style Application fill:#e8f5e9,stroke:#42b983,color:#333
-    style ModalView fill:#e3f2fd,stroke:#42a5f5,color:#333
-    style Helpers fill:#fff3e0,stroke:#ffa726,color:#333
-    style DOM fill:#fce4ec,stroke:#ef5350,color:#333
-```
+<!-- bespoke diagram: edit diagrams/high-level-design.mmd or .hints.json, then: npx pict-renderer-graph build modules/pict/pict-section-modal/docs -->
+![High-Level Design](diagrams/high-level-design.svg)
 
 ## Class Relationships
 
@@ -123,34 +78,8 @@ classDiagram
 
 The overlay is a semi-transparent backdrop that appears behind modal dialogs. It is reference-counted so that multiple stacked modals share a single overlay element.
 
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant MV as PictSectionModal
-    participant OV as PictModalOverlay
-    participant DOM as document.body
-
-    App->>MV: confirm('Save?')
-    MV->>OV: show(clickHandler)
-    Note over OV: refCount: 0 -> 1
-    OV->>DOM: createElement('.pict-modal-overlay')
-    OV->>DOM: classList.add('pict-modal-visible')
-
-    App->>MV: confirm('Also save backup?')
-    MV->>OV: show(clickHandler)
-    Note over OV: refCount: 1 -> 2
-
-    Note over App: User clicks "OK" on second dialog
-    MV->>OV: hide()
-    Note over OV: refCount: 2 -> 1
-    Note over OV: Overlay stays visible
-
-    Note over App: User clicks "OK" on first dialog
-    MV->>OV: hide()
-    Note over OV: refCount: 1 -> 0
-    OV->>DOM: classList.remove('pict-modal-visible')
-    OV->>DOM: removeChild (after transition)
-```
+<!-- bespoke diagram: edit diagrams/overlay-management.mmd or .hints.json, then: npx pict-renderer-graph build modules/pict/pict-section-modal/docs -->
+![Overlay Management](diagrams/overlay-management.svg)
 
 When a modal is dismissed while others remain, the overlay updates its click handler to point to the new topmost modal. This ensures that clicking the backdrop always dismisses the correct dialog.
 
@@ -164,32 +93,8 @@ Confirm dialogs and modal windows both use the same promise-based flow:
 4. When the user clicks a button (or the close button, or the overlay, or presses Escape), the resolver fires with the result
 5. The dialog animates out and is removed from the DOM after the CSS transition completes
 
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant CF as PictModalConfirm
-    participant DOM as document.body
-
-    App->>CF: confirm('Delete?')
-    CF->>CF: new Promise(resolve)
-    CF->>DOM: appendChild(dialog)
-    CF->>DOM: classList.add('pict-modal-visible')
-    Note over DOM: Dialog animates in
-
-    alt User clicks Confirm
-        DOM->>CF: click event (confirm button)
-        CF->>DOM: classList.remove('pict-modal-visible')
-        Note over DOM: Dialog animates out
-        CF->>DOM: removeChild (after 220ms)
-        CF->>App: resolve(true)
-    else User clicks Cancel / Escape / Overlay
-        DOM->>CF: click or keydown event
-        CF->>DOM: classList.remove('pict-modal-visible')
-        Note over DOM: Dialog animates out
-        CF->>DOM: removeChild (after 220ms)
-        CF->>App: resolve(false)
-    end
-```
+<!-- bespoke diagram: edit diagrams/promise-pattern.mmd or .hints.json, then: npx pict-renderer-graph build modules/pict/pict-section-modal/docs -->
+![Promise Pattern](diagrams/promise-pattern.svg)
 
 ## DOM Lifecycle
 
@@ -222,18 +127,8 @@ Toasts have the highest z-index so they remain visible even when a modal dialog 
 
 The theming system uses CSS custom properties (CSS variables) scoped to a root class:
 
-```mermaid
-graph LR
-    A[".pict-modal-root (document.body)"] --> B["--pict-modal-* variables"]
-    B --> C[".pict-modal-overlay"]
-    B --> D[".pict-modal-dialog"]
-    B --> E[".pict-modal-toast"]
-    B --> F[".pict-modal-tooltip"]
-    B --> G[".pict-modal-btn"]
-
-    style A fill:#e8f5e9,stroke:#42b983,color:#333
-    style B fill:#fff3e0,stroke:#ffa726,color:#333
-```
+<!-- bespoke diagram: edit diagrams/css-theming-architecture.mmd or .hints.json, then: npx pict-renderer-graph build modules/pict/pict-section-modal/docs -->
+![CSS Theming Architecture](diagrams/css-theming-architecture.svg)
 
 During initialization, the view adds the `pict-modal-root` class to `document.body`. All CSS rules reference variables defined on this class. To theme the module, override any `--pict-modal-*` variable in your own stylesheet -- no need to modify the module's source or increase specificity.
 

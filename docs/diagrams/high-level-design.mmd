@@ -1,0 +1,45 @@
+graph TB
+    subgraph Application["Your Application"]
+        AppCode[Application Code]
+    end
+
+    subgraph ModalView["PictSectionModal (Main Entry Point)"]
+        direction TB
+        MV[PictSectionModal]
+    end
+
+    subgraph Helpers["Helper Classes"]
+        OV[PictModalOverlay]
+        CF[PictModalConfirm]
+        WN[PictModalWindow]
+        TS[PictModalToast]
+        TT[PictModalTooltip]
+    end
+
+    subgraph DOM["DOM Elements"]
+        Overlay[".pict-modal-overlay"]
+        Dialogs[".pict-modal-dialog"]
+        ToastContainers[".pict-modal-toast-container"]
+        Tooltips[".pict-modal-tooltip"]
+    end
+
+    AppCode --> MV
+    MV --> OV
+    MV --> CF
+    MV --> WN
+    MV --> TS
+    MV --> TT
+
+    CF --> OV
+    WN --> OV
+
+    CF --> Dialogs
+    WN --> Dialogs
+    OV --> Overlay
+    TS --> ToastContainers
+    TT --> Tooltips
+
+    style Application fill:#e8f5e9,stroke:#42b983,color:#333
+    style ModalView fill:#e3f2fd,stroke:#42a5f5,color:#333
+    style Helpers fill:#fff3e0,stroke:#ffa726,color:#333
+    style DOM fill:#fce4ec,stroke:#ef5350,color:#333

@@ -1,0 +1,28 @@
+graph TD
+    A[Your Application] --> B[PictSectionModal]
+    B --> C[Overlay Manager]
+    B --> D[Confirm Helper]
+    B --> E[Window Helper]
+    B --> F[Toast Helper]
+    B --> G[Tooltip Helper]
+
+    D --> C
+    E --> C
+
+    D --> H[DOM: Dialog Elements]
+    E --> H
+    F --> I[DOM: Toast Containers]
+    G --> J[DOM: Tooltip Elements]
+    C --> K[DOM: Backdrop Overlay]
+
+    style A fill:#e8f5e9,stroke:#42b983,color:#333
+    style B fill:#e3f2fd,stroke:#42a5f5,color:#333
+    style C fill:#fff3e0,stroke:#ffa726,color:#333
+    style D fill:#fff3e0,stroke:#ffa726,color:#333
+    style E fill:#fff3e0,stroke:#ffa726,color:#333
+    style F fill:#fff3e0,stroke:#ffa726,color:#333
+    style G fill:#fff3e0,stroke:#ffa726,color:#333
+    style H fill:#fce4ec,stroke:#ef5350,color:#333
+    style I fill:#fce4ec,stroke:#ef5350,color:#333
+    style J fill:#fce4ec,stroke:#ef5350,color:#333
+    style K fill:#fce4ec,stroke:#ef5350,color:#333

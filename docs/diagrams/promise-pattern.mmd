@@ -1,0 +1,24 @@
+sequenceDiagram
+    participant App as Application
+    participant CF as PictModalConfirm
+    participant DOM as document.body
+
+    App->>CF: confirm('Delete?')
+    CF->>CF: new Promise(resolve)
+    CF->>DOM: appendChild(dialog)
+    CF->>DOM: classList.add('pict-modal-visible')
+    Note over DOM: Dialog animates in
+
+    alt User clicks Confirm
+        DOM->>CF: click event (confirm button)
+        CF->>DOM: classList.remove('pict-modal-visible')
+        Note over DOM: Dialog animates out
+        CF->>DOM: removeChild (after 220ms)
+        CF->>App: resolve(true)
+    else User clicks Cancel / Escape / Overlay
+        DOM->>CF: click or keydown event
+        CF->>DOM: classList.remove('pict-modal-visible')
+        Note over DOM: Dialog animates out
+        CF->>DOM: removeChild (after 220ms)
+        CF->>App: resolve(false)
+    end
