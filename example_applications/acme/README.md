@@ -31,30 +31,8 @@ npm run build
 
 ## File tour
 
-```
-acme/
-├── package.json          ← dependencies, build/copy config
-├── html/
-│   └── index.html        ← single root container + bundle script tag
-├── css/
-│   └── acme.css          ← page-level chrome (everything else is in views)
-└── source/
-    ├── Pict-Application-Acme.js              ← application bootstrap
-    ├── Pict-Application-Acme-Configuration.json
-    ├── Acme-Brand.js                         ← brand block (inline logo+favicons+colors)
-    ├── themes/
-    │   └── acme-default.json                 ← custom theme bundle
-    ├── providers/
-    │   └── PictRouter-Acme-Configuration.json
-    └── views/
-        ├── PictView-Acme-Layout.js           ← shell() + addPanel() x3
-        ├── PictView-Acme-TopBar-Nav.js       ← About / Legal / Store nav buttons
-        ├── PictView-Acme-StatusBar.js        ← bottom status text
-        ├── PictView-Acme-Sidebar.js          ← product filter (only shown on /Store)
-        ├── PictView-Acme-About.js            ← /About page content
-        ├── PictView-Acme-Legal.js            ← /Legal page content
-        └── PictView-Acme-Store.js            ← /Store page content (filtered product grid)
-```
+<!-- bespoke diagram: edit diagrams/file-tour.mmd or .hints.json, then: npx pict-renderer-graph build modules/pict/pict-section-modal/example_applications/acme -->
+![File tour](diagrams/file-tour.svg)
 
 ## The 90-second tour
 
