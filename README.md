@@ -14,7 +14,7 @@ Pict-Section-Modal provides a complete notification and dialog toolkit -- confir
 - **Double Confirmations** -- Two-step safety gates: type-to-confirm with a required phrase, or click-twice to proceed
 - **Custom Modal Windows** -- Arbitrary HTML content with configurable buttons, closeable header, and lifecycle callbacks
 - **Toast Notifications** -- Auto-dismissing stacked notifications in six screen positions with four severity types
-- **Tooltips** -- Simple text tooltips and rich HTML tooltips with directional positioning and auto-flip
+- **Tooltips** -- Simple text tooltips and rich HTML tooltips with directional positioning and auto-flip, plus opt-in **pinnable** tooltips that click-to-stick open and follow their anchor on scroll
 - **Layout Shell** -- Viewport-filling panel layout (top/bottom/left/right + center) with resizable, collapsible panels that flip to top drawers on narrow viewports
 - **CSS Theming** -- 30+ CSS custom properties for full visual customization without touching source code
 - **Shared Overlay** -- Reference-counted backdrop shared across stacked modals with click-to-dismiss support
@@ -141,6 +141,20 @@ let tmpRichTip = tmpModal.richTooltip(document.getElementById('status'),
 		maxWidth: '350px',
 		interactive: true
 	});
+
+// Pinnable rich tooltip — hover shows it; a click on the anchor pins it
+// open (it ignores mouseleave/blur and follows the anchor on scroll).
+// Click again to unpin. Pass startPinned to render it already-pinned.
+let tmpPinned = tmpModal.pinnableTooltip(document.getElementById('chip'),
+	'<strong>External DB ID</strong>',
+	{
+		position: 'top',
+		startPinned: false,
+		onPinChange: (pIsPinned) => { /* persist a per-anchor preference */ }
+	});
+tmpPinned.pin();      // pin programmatically
+tmpPinned.unpin();    // unpin programmatically
+tmpPinned.isPinned(); // -> boolean
 
 // Remove a tooltip binding
 tmpTip.destroy();
@@ -396,6 +410,7 @@ Detailed per-function documentation with code snippets:
 | [toast](docs/api/toast.md) | Show a toast notification |
 | [tooltip](docs/api/tooltip.md) | Attach a simple text tooltip |
 | [richTooltip](docs/api/richTooltip.md) | Attach a rich HTML tooltip |
+| [pinnableTooltip](docs/api/pinnableTooltip.md) | Attach a rich HTML tooltip that can be clicked to pin open |
 | [dismissAll](docs/api/dismissAll.md) | Dismiss all modals, tooltips, and toasts |
 | [dismissModals](docs/api/dismissModals.md) | Dismiss all open modals |
 | [dismissTooltips](docs/api/dismissTooltips.md) | Dismiss all active tooltips |

@@ -680,6 +680,216 @@ suite
 
 		suite
 		(
+			'Pinnable Tooltips',
+			() =>
+			{
+				let fDispatch = (pTarget, pEventName) =>
+				{
+					let tmpEvent = document.createEvent('Event');
+					tmpEvent.initEvent(pEventName, true, true);
+					pTarget.dispatchEvent(tmpEvent);
+				};
+
+				test
+				(
+					'pinnableTooltip() returns a handle with pin/unpin/isPinned',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+
+						let tmpHandle = tmpModal.pinnableTooltip(tmpTarget, '<strong>Pin me</strong>');
+						Expect(tmpHandle).to.be.an('object');
+						Expect(typeof tmpHandle.destroy).to.equal('function');
+						Expect(typeof tmpHandle.pin).to.equal('function');
+						Expect(typeof tmpHandle.unpin).to.equal('function');
+						Expect(typeof tmpHandle.isPinned).to.equal('function');
+						Expect(tmpHandle.isPinned()).to.equal(false);
+
+						tmpHandle.destroy();
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+				test
+				(
+					'click pins the tooltip and it survives mouseleave',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+
+						let tmpHandle = tmpModal.pinnableTooltip(tmpTarget, 'Sticky');
+
+						// Click toggles pinned on and shows the tooltip immediately.
+						fDispatch(tmpTarget, 'click');
+						Expect(tmpHandle.isPinned()).to.equal(true);
+						Expect(tmpModal._activeTooltips.length).to.equal(1);
+
+						// Mouseleave must NOT hide a pinned tooltip.
+						fDispatch(tmpTarget, 'mouseleave');
+						Expect(tmpModal._activeTooltips.length).to.equal(1);
+
+						// Clicking again unpins and hides it.
+						fDispatch(tmpTarget, 'click');
+						Expect(tmpHandle.isPinned()).to.equal(false);
+						Expect(tmpModal._activeTooltips.length).to.equal(0);
+
+						tmpHandle.destroy();
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+				test
+				(
+					'startPinned renders pinned and fires onPinChange',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+
+						let tmpChanges = [];
+						let tmpHandle = tmpModal.pinnableTooltip(tmpTarget, 'Always',
+							{ startPinned: true, onPinChange: (pIsPinned) => { tmpChanges.push(pIsPinned); } });
+
+						Expect(tmpHandle.isPinned()).to.equal(true);
+						Expect(tmpModal._activeTooltips.length).to.equal(1);
+						Expect(tmpChanges[0]).to.equal(true);
+
+						tmpHandle.destroy();
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+				test
+				(
+					'destroy removes the click listener and clears pin state',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+
+						let tmpHandle = tmpModal.pinnableTooltip(tmpTarget, 'Sticky');
+						fDispatch(tmpTarget, 'click');
+						Expect(tmpHandle.isPinned()).to.equal(true);
+
+						tmpHandle.destroy();
+						Expect(tmpModal._activeTooltips.length).to.equal(0);
+
+						// After destroy, a click must not re-pin / re-create a tooltip.
+						fDispatch(tmpTarget, 'click');
+						Expect(tmpModal._activeTooltips.length).to.equal(0);
+
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+				test
+				(
+					'className option themes the tooltip element',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+
+						let tmpHandle = tmpModal.pinnableTooltip(tmpTarget, 'Themed', { className: 'chip-tooltip-info' });
+						// Pinning shows the tooltip synchronously.
+						fDispatch(tmpTarget, 'click');
+
+						let tmpTip = document.querySelector('.pict-modal-tooltip.chip-tooltip-info');
+						Expect(tmpTip, 'the custom class should be on the tooltip element').to.not.equal(null);
+
+						tmpHandle.destroy();
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+				test
+				(
+					'a startPinned tooltip whose anchor is not rendered is not painted visible',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+						// Simulate a hidden anchor (e.g. an inactive tab): no layout box.
+						tmpTarget.getClientRects = () => { return []; };
+
+						let tmpHandle = tmpModal.pinnableTooltip(tmpTarget, 'Hidden', { startPinned: true });
+						let tmpTip = document.querySelector('.pict-modal-tooltip');
+						Expect(tmpTip, 'tooltip element is still created/tracked').to.not.equal(null);
+						Expect(tmpTip.classList.contains('pict-modal-visible'), 'but not painted visible').to.equal(false);
+
+						tmpHandle.destroy();
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+				test
+				(
+					'a startPinned tooltip whose anchor IS rendered is painted visible',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+						// Simulate a rendered, in-viewport anchor (jsdom has no layout).
+						tmpTarget.getClientRects = () => { return [ { width: 40, height: 20 } ]; };
+						tmpTarget.getBoundingClientRect = () => { return { top: 10, bottom: 30, left: 10, right: 50, width: 40, height: 20 }; };
+
+						let tmpHandle = tmpModal.pinnableTooltip(tmpTarget, 'Shown', { startPinned: true });
+						let tmpTip = document.querySelector('.pict-modal-tooltip');
+						Expect(tmpTip.classList.contains('pict-modal-visible'), 'painted visible').to.equal(true);
+
+						tmpHandle.destroy();
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+				test
+				(
+					'plain tooltip is not pinnable (click does nothing)',
+					(fDone) =>
+					{
+						let tmpPict = new libPict({ LogStreams: [{ loggertype: 'console', streamtype: 'console', level: 'error' }] });
+						let tmpModal = tmpPict.addView('TestModal', {}, libPictSectionModal);
+
+						let tmpTarget = document.createElement('button');
+						document.body.appendChild(tmpTarget);
+
+						let tmpHandle = tmpModal.richTooltip(tmpTarget, 'Transient');
+						fDispatch(tmpTarget, 'click');
+						Expect(tmpModal._activeTooltips.length).to.equal(0);
+
+						tmpHandle.destroy();
+						document.body.removeChild(tmpTarget);
+						fDone();
+					}
+				);
+			}
+		);
+
+		suite
+		(
 			'Overlay',
 			() =>
 			{

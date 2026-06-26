@@ -248,6 +248,33 @@ class PictViewModalGardenLayout extends libPictView
 			);
 		}
 
+		// ── Pinnable Tooltips ──
+		let tmpPinnable1 = document.getElementById('pinnable-tooltip-1');
+		if (tmpPinnable1)
+		{
+			tmpModal.pinnableTooltip(
+				tmpPinnable1,
+				'<div style="padding:4px">' +
+					'<strong>Pinned note</strong>' +
+					'<p style="margin:6px 0 0">Click the anchor to pin this open; click again to dismiss. It stays put while you scroll.</p>' +
+				'</div>',
+				{ position: 'top', maxWidth: '280px', interactive: true }
+			);
+		}
+
+		let tmpPinnable2 = document.getElementById('pinnable-tooltip-2');
+		if (tmpPinnable2)
+		{
+			tmpModal.pinnableTooltip(
+				tmpPinnable2,
+				'<div style="padding:4px">' +
+					'<strong>Always visible</strong>' +
+					'<p style="margin:6px 0 0">Rendered already-pinned via <code>startPinned</code>. Click to unpin.</p>' +
+				'</div>',
+				{ position: 'bottom', maxWidth: '280px', interactive: true, startPinned: true }
+			);
+		}
+
 		// ── Nav menu dropdowns ──
 		let tmpNavProducts = document.getElementById('nav-products');
 		if (tmpNavProducts)
@@ -1043,6 +1070,17 @@ PictViewModalGardenLayout.default_configuration =
 			<span id="rich-tooltip-action" class="rich-tooltip-target">Hover for Status</span>
 		</div>
 		<div id="code-snippet-rich-tooltips"></div>
+	</div>
+
+	<!-- Pinnable Tooltips -->
+	<div class="garden-card">
+		<h2>Pinnable Tooltips</h2>
+		<p class="card-description">Rich tooltips that show on hover but <strong>click to pin</strong> them open. A pinned tooltip stays visible (it ignores mouseleave/blur) and follows its anchor as the page scrolls. Click again to unpin.</p>
+		<div class="button-row">
+			<span id="pinnable-tooltip-1" class="rich-tooltip-target">Click to pin</span>
+			<span id="pinnable-tooltip-2" class="rich-tooltip-target">Starts pinned</span>
+		</div>
+		<div id="code-snippet-pinnable-tooltips"></div>
 	</div>
 
 	<hr class="section-divider" />

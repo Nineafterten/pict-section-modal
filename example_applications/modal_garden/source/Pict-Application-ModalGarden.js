@@ -143,6 +143,14 @@ const _CodeSnippets =
 		DefaultCode: "let tmpHandle = tmpModal.richTooltip(\n\ttmpElement,\n\t'<strong>User Profile</strong><p>Jane Doe</p>',\n\t{ position: 'bottom', maxWidth: '280px', interactive: true }\n);\n// tmpHandle.destroy() removes the tooltip"
 	},
 	{
+		ViewIdentifier: 'CodeSnippet-PinnableTooltips',
+		TargetElementAddress: '#code-snippet-pinnable-tooltips',
+		Language: 'javascript',
+		ReadOnly: true,
+		LineNumbers: false,
+		DefaultCode: "// Hover shows it; click the anchor to pin it open.\nlet tmpHandle = tmpModal.pinnableTooltip(\n\ttmpElement,\n\t'<strong>Pinned note</strong><p>Stays open until you click again.</p>',\n\t{ position: 'top', maxWidth: '280px', interactive: true }\n);\n// Or render already-pinned:\ntmpModal.pinnableTooltip(el, html, { startPinned: true });\n// tmpHandle.pin() / tmpHandle.unpin() / tmpHandle.isPinned()"
+	},
+	{
 		ViewIdentifier: 'CodeSnippet-DropdownNav',
 		TargetElementAddress: '#code-snippet-dropdown-nav',
 		Language: 'javascript',
