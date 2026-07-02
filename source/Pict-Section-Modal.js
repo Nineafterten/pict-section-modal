@@ -131,6 +131,21 @@ class PictSectionModal extends libPictViewClass
 		return this._tooltip.richTooltip(pElement, pHTMLContent, pOptions);
 	}
 
+	/**
+	 * Attach a pinnable rich HTML tooltip to an element. Hover/focus behaves
+	 * like richTooltip(); a click on the element toggles a pinned state that
+	 * keeps the tooltip open and follows the anchor on scroll/resize.
+	 *
+	 * @param {HTMLElement} pElement - Target element
+	 * @param {string} pHTMLContent - HTML content
+	 * @param {object} [pOptions] - Options { position, delay, maxWidth, interactive, startPinned, onPinChange }
+	 * @returns {{ destroy: function, pin: function, unpin: function, isPinned: function }}
+	 */
+	pinnableTooltip(pElement, pHTMLContent, pOptions)
+	{
+		return this._tooltip.pinnableTooltip(pElement, pHTMLContent, pOptions);
+	}
+
 	// -- Toast API --
 
 	/**

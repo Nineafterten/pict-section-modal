@@ -42,7 +42,9 @@ module.exports = (
 		"position": "top",
 		"delay": 200,
 		"maxWidth": "300px",
-		"interactive": false
+		"interactive": false,
+		"pinnable": false,
+		"startPinned": false
 	},
 
 	"DefaultToastOptions":
@@ -119,6 +121,7 @@ module.exports = (
 	--pict-modal-tooltip-fg:          var(--theme-color-text-primary,      #ffffff);
 	--pict-modal-tooltip-border-radius:4px;
 	--pict-modal-tooltip-shadow:      0 2px 8px rgba(0, 0, 0, 0.15);
+	--pict-modal-tooltip-pinned-ring: var(--theme-color-brand-primary, #2E7D74);
 
 	/* Dropdown */
 	--pict-modal-dropdown-bg:                 var(--theme-color-background-panel,  #ffffff);
@@ -479,6 +482,14 @@ module.exports = (
 .pict-modal-tooltip.pict-modal-visible
 {
 	opacity: 1;
+}
+
+/* Pinned tooltips stay open and can be interacted with; a subtle ring
+   distinguishes a pinned tooltip from a transient hover tooltip. */
+.pict-modal-tooltip.pict-modal-tooltip-pinned
+{
+	pointer-events: auto;
+	box-shadow: var(--pict-modal-tooltip-shadow), 0 0 0 1px var(--pict-modal-tooltip-pinned-ring);
 }
 
 .pict-modal-tooltip-arrow
